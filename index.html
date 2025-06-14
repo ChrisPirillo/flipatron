@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLIPATRON - Retro Solari Board Flip Text Display</title>
+    <meta name="description" content="Experience FLIPATRON, a retro-inspired animated text display board. Enter your message and watch it flip into view with classic solenoid sound effects. Fun for all ages!">
+    <meta name="keywords" content="flip-disc display, Solari board, split-flap display, electromechanical display, departure board, arrival board, vintage display, retro display, mechanical text display, flip board simulator, online flip-disc, web app flip display, animated text display, text flipper, retro text generator, flip clock style, Solari board generator, nostalgia tech, vintage airport board, retro train station sign, classic message board">
+    <link rel="canonical" href="https://pirillo.com/arcade/flipatron.html">
+    <meta name="theme-color" content="#000000">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=VT323&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=VT323&display=swap"></noscript>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
+   <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="FLIPATRON - Retro Text Display Arcade">
+    <meta property="og:description" content="Experience FLIPATRON, a retro-inspired animated text display board. Enter your message and watch it flip into view with classic solenoid sound effects.">
+    <meta property="og:image" content="https://pirillo.com/arcade/images/flipatron.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://pirillo.com/arcade/flipatron.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Pirillo.com Arcade">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FLIPATRON - Retro Text Display Arcade">
+    <meta name="twitter:description" content="Experience FLIPATRON, a retro-inspired animated text display board. Enter your message and watch it flip into view.">
+    <meta name="twitter:image" content="https://pirillo.com/arcade/images/flipatron.png">
+    <meta name="twitter:site" content="@ChrisPirillo">
+    <meta name="twitter:creator" content="@ChrisPirillo">
+
+    <!-- LD+JSON Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "FLIPATRON",
+      "abstract": "A retro-inspired animated text display board.",
+      "description": "Experience FLIPATRON, a retro-inspired animated text display board. Enter your message and watch it flip into view with classic solenoid sound effects. Fun for all ages!",
+      "url": "https://pirillo.com/arcade/flipatron.html",
+      "image": "https://pirillo.com/arcade/images/flipatron.png",
+      "applicationCategory": "GameApplication",
+      "genre": "Arcade",
+      "operatingSystem": "Any (Web-based)",
+      "browserRequirements": "Requires JavaScript and a modern web browser.",
+      "author": {
+        "@type": "Person",
+        "name": "Chris Pirillo",
+        "url": "https://pirillo.com/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Pirillo.com",
+        "url": "https://pirillo.com/"
+      },
+      "datePublished": "2024-06-05",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "keywords": "flipatron, retro text display, animated text, flip board, solenoid, arcade game, online game, javascript game"
+    }
+    </script>
+
+    <style>
+        :root {
+            --page-bg: #000000;
+            --board-bg: #000000;
+            --cell-bg: #282828;
+            --divider-color: #000000; 
+            --char-color: #FFFFFF;
+            --accent-color: #FFD700;
+            --text-color-dark: #1a1a1a;
+            --flip-duration: 0.15s;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--page-bg);
+            color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* Internet Explorer/Edge */
+            user-select: none;         /* Standard */
+        }
+
+        #messageInput {
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        #boardScreen {
+            gap: 20px; 
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .title-area {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70px; 
+        }
+
+        #animatedTitleContainer {
+            display: flex;
+            gap: 5px;
+        }
+        
+        #inputScreen h1.static-title {
+             display: none; 
+        }
+
+        .input-controls-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background-color: transparent; 
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: none; 
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center; 
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+            max-width: 600px; 
+        }
+
+        #messageInput {
+            font-family: 'Roboto Mono', monospace;
+            padding: 12px 15px;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            border: 2px solid var(--accent-color);
+            background-color: var(--page-bg);
+            color: #f0f0f0;
+            border-radius: 8px;
+            flex-grow: 1; 
+            max-width: clamp(200px, 50vw, 400px); 
+            text-align: left; 
+            outline: none; 
+        }
+        #messageInput::placeholder {
+            color: #888;
+        }
+
+        #displayButton {
+             flex-shrink: 0; 
+        }
+
+        .styled-button {
+            font-family: 'Roboto Mono', monospace;
+            padding: 12px 25px;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            background-color: var(--accent-color);
+            color: var(--text-color-dark);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            font-weight: bold;
+        }
+
+        .styled-button:hover {
+            background-color: #ffd800c9; 
+        }
+        .styled-button:active {
+            transform: scale(0.98); 
+        }
+
+        .board-controls {
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: center;
+            gap: 15px;
+            opacity: 0; 
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+            padding: 10px; 
+            border-radius: 8px; 
+            width: 100%; 
+            max-width: clamp(300px, 90vw, 1200px); 
+        }
+
+        .board-controls.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #flipBoardContainer {
+            position: relative;
+            width: clamp(300px, 90vw, 1200px); 
+            height: clamp(200px, 70vh, 700px); 
+            background-color: var(--board-bg);
+            padding: clamp(10px, 2vw, 15px);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+        }
+
+        #flipBoard {
+            display: grid;
+            gap: clamp(3px, 0.5vw, 5px); 
+        }
+
+        .char-cell, .title-char-cell {
+            position: relative;
+            background-color: var(--cell-bg);
+            border-radius: clamp(3px, 1vw, 6px);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+            font-family: 'VT323', monospace;
+            color: var(--char-color);
+            text-align: center;
+            perspective: 350px;
+        }
+        .title-char-cell {
+             width: clamp(30px, 6vw, 55px);
+             height: clamp(40px, 8vh, 70px);
+             color: var(--accent-color);
+        }
+
+        .flap {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background-color: var(--cell-bg);
+        }
+        .flap.top {
+            top: 0;
+            border-radius: clamp(3px, 1vw, 6px) clamp(3px, 1vw, 6px) 0 0;
+        }
+        .flap.bottom {
+            bottom: 0;
+            border-radius: 0 0 clamp(3px, 1vw, 6px) clamp(3px, 1vw, 6px);
+            z-index: 1;
+        }
+        
+        .flipper {
+            transform-style: preserve-3d;
+            transition: transform var(--flip-duration) cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transform-origin: bottom;
+            z-index: 3;
+        }
+        
+        .next-char-top {
+            z-index: 2;
+        }
+
+        .flipper .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background-color: var(--cell-bg);
+        }
+        
+        .flipper .face.back {
+            transform: rotateX(180deg);
+        }
+
+        .char-inner {
+            display: block;
+            position: relative;
+            line-height: 1; 
+        }
+        
+        .flap.bottom .char-inner, .flipper .face.back .char-inner {
+            transform: translateY(-50%);
+        }
+        
+        .char-cell::after, .title-char-cell::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: var(--divider-color);
+            transform: translateY(-50%);
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="inputScreen" class="screen active">
+            <div class="input-controls-group">
+                <div class="title-area">
+                     <h1 class="static-title">FLIPATRON</h1>
+                     <div id="animatedTitleContainer"></div>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="messageInput" placeholder="Enter text..." aria-label="Enter text to display on FLIPATRON">
+                    <button id="displayButton" class="styled-button">Display</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="boardScreen" class="screen">
+            <div id="flipBoardContainer">
+                <div id="flipBoard"></div>
+            </div>
+            <div id="boardControlsContainer" class="board-controls">
+                <button id="newBoardButton" class="styled-button">New</button>
+                <button id="randomizeButton" class="styled-button">Random</button>
+                <button id="headlinesButton" class="styled-button">Headlines</button>
+                <button id="exportButton" class="styled-button">Export PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Constants and Global State ---
+        const ALPHABET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,':-?!()@#$&*+=/\\\"%<>[]{}|~^`";
+        const FLIP_DURATION_MS = 150;
+        const STAGGER_DELAY_MS = 35;
+        const TITLE_STAGGER_DELAY_MS = 100;
+        const MAX_INPUT_LENGTH = 150;
+        const AVG_GAP_SIZE = 4;
+        const MAX_PREFERRED_CELLS = 180;
+        const SCREEN_TRANSITION_MS = 150;
+        const HEADLINES_INTERVAL_MS = 8000; // 8 seconds
+        const RSS_FEEDS = [
+            "https://www.theverge.com/rss/index.xml", "http://feeds.arstechnica.com/arstechnica/index/",
+            "https://techcrunch.com/feed/", "https://www.wired.com/feed/rss",
+            "https://news.ycombinator.com/rss", "https://www.engadget.com/rss.xml",
+            "https://gizmodo.com/rss", "https://www.androidauthority.com/feed/",
+            "https://9to5mac.com/feed/", "https://9to5google.com/feed/",
+            "https://feeds.feedburner.com/venturebeat/SZYF"
+        ];
+        const FORTUNES = [
+            "DO. OR DO NOT. THERE IS NO TRY.", "THE FORCE WILL BE WITH YOU. ALWAYS.", "NEVER TELL ME THE ODDS!",
+            "YOUR FOCUS DETERMINES YOUR REALITY.", "I FIND YOUR LACK OF FAITH DISTURBING.", "IT'S A TRAP!",
+            "MAY THE FORCE BE WITH YOU.", "HELP ME, OBI-WAN KENOBI. YOU'RE MY ONLY HOPE.", "I HAVE A BAD FEELING ABOUT THIS.",
+            "STAY ON TARGET.", "FEAR IS THE PATH TO THE DARK SIDE.", "IN MY EXPERIENCE, THERE'S NO SUCH THING AS LUCK.",
+            "GREAT, KID. DON'T GET COCKY.", "THE ABILITY TO SPEAK DOES NOT MAKE YOU INTELLIGENT.", "THIS IS THE WAY.",
+            "I AM ONE WITH THE FORCE, THE FORCE IS WITH ME.", "REBELLIONS ARE BUILT ON HOPE.", "LAUGH IT UP, FUZZBALL!",
+            "USE THE FORCE, LUKE.", "POWERFUL YOU HAVE BECOME, THE DARK SIDE I SENSE IN YOU.", "I AM YOUR FATHER.",
+            "SO THIS IS HOW LIBERTY DIES... WITH THUNDEROUS APPLAUSE.", "CHEWIE, WE'RE HOME.",
+            "I'VE GOT A VERY GOOD FEELING ABOUT THIS.", "THIS IS WHERE THE FUN BEGINS.", "HELLO THERE.",
+            "A JEDI USES THE FORCE FOR KNOWLEDGE AND DEFENSE, NEVER FOR ATTACK.",
+            "THE DARK SIDE OF THE FORCE IS A PATHWAY TO MANY ABILITIES SOME CONSIDER TO BE UNNATURAL.",
+            "I AM THE SENATE.", "IT'S OVER ANAKIN, I HAVE THE HIGH GROUND.", "THAT'S NO MOON.",
+            "THE FORCE IS STRONG WITH THIS ONE.", "THESE AREN'T THE DROIDS YOU'RE LOOKING FOR.",
+            "BELIEVE YOU CAN AND YOU'RE HALFWAY THERE.", "EVERY DAY IS A NEW BEGINNING.", "YOUR POTENTIAL IS ENDLESS.",
+            "THE BEST IS YET TO COME.", "MAKE TODAY AMAZING."
+        ];
+
+        // --- DOM Elements ---
+        const inputScreen = document.getElementById('inputScreen'), boardScreen = document.getElementById('boardScreen');
+        const messageInput = document.getElementById('messageInput'), displayButton = document.getElementById('displayButton');
+        const boardControlsContainer = document.getElementById('boardControlsContainer'), newBoardButton = document.getElementById('newBoardButton');
+        const randomizeButton = document.getElementById('randomizeButton'), headlinesButton = document.getElementById('headlinesButton');
+        const exportButton = document.getElementById('exportButton'), flipBoardElement = document.getElementById('flipBoard');
+        const animatedTitleContainer = document.getElementById('animatedTitleContainer');
+
+        // --- State Variables ---
+        let clickSynth;
+        let numColsGlobal = 0, numRowsGlobal = 0, isBoardAnimating = false;
+        let currentTitleAnimationController = null;
+        let headlines = [], currentHeadlineIndex = 0, headlinesInterval = null;
+        let controlsHideTimeout = null;
+        let boardCells = []; // To hold main board cells for reuse
+
+        // --- Sound Functions ---
+        function setupSound() {
+            if (typeof Tone === 'undefined') return;
+            try {
+                clickSynth = new Tone.NoiseSynth({
+                    noise: { type: 'white' },
+                    envelope: { attack: 0.001, decay: 0.008, sustain: 0, release: 0.01 },
+                    volume: -20
+                }).toDestination();
+                const startAudio = () => Tone.start();
+                document.body.addEventListener('click', startAudio, { once: true });
+                document.body.addEventListener('keydown', startAudio, { once: true });
+            } catch (e) { console.warn("Sound disabled.", e); }
+        }
+
+        function playClick() {
+            if (clickSynth && Tone.context.state === 'running') {
+                try { clickSynth.triggerAttackRelease("128n", "+0.01"); } 
+                catch (e) { console.warn("Tone.js playClick error:", e); }
+            }
+        }
+        
+        // --- Core Animation and Grid Logic ---
+        function createSplitFlapCell(isTitle = false, fontSize) {
+            const cell = document.createElement('div');
+            cell.className = isTitle ? 'title-char-cell' : 'char-cell';
+            cell.style.fontSize = `${fontSize}px`;
+            
+            const createCharInner = () => { const el = document.createElement('span'); el.className = 'char-inner'; el.textContent = ' '; return el; };
+            
+            const nextTop = document.createElement('div'); nextTop.className = 'flap top next-char-top'; nextTop.appendChild(createCharInner());
+            const topFlipper = document.createElement('div'); topFlipper.className = 'flap top flipper';
+            const front = document.createElement('div'); front.className = 'face front'; front.appendChild(createCharInner());
+            const back = document.createElement('div'); back.className = 'face back'; back.appendChild(createCharInner());
+            topFlipper.appendChild(front); topFlipper.appendChild(back);
+            const bottom = document.createElement('div'); bottom.className = 'flap bottom'; bottom.appendChild(createCharInner());
+            cell.appendChild(nextTop); cell.appendChild(topFlipper); cell.appendChild(bottom);
+            return cell;
+        }
+        
+        async function animateSingleCellToChar(cell, targetChar, signal) {
+            const flipper = cell.querySelector('.flipper'), frontChar = cell.querySelector('.face.front .char-inner');
+            const backChar = cell.querySelector('.face.back .char-inner'), nextTopChar = cell.querySelector('.next-char-top .char-inner');
+            const bottomChar = cell.querySelector('.flap.bottom .char-inner');
+
+            if (!flipper || !frontChar || !backChar || !nextTopChar || !bottomChar) return;
+            if (signal && signal.aborted) return;
+
+            let currentDisplayChar = bottomChar.textContent;
+            if (currentDisplayChar.trim() === '') currentDisplayChar = ALPHABET[0];
+
+            let currentIndex = ALPHABET.indexOf(currentDisplayChar.toUpperCase());
+            const targetIndex = ALPHABET.indexOf(targetChar.toUpperCase());
+
+            if (currentIndex === -1) currentIndex = 0;
+            if (targetIndex === -1) { frontChar.textContent = targetChar; bottomChar.textContent = targetChar; return; }
+            if (currentIndex === targetIndex && bottomChar.textContent === targetChar) return;
+
+            while (currentIndex !== targetIndex) {
+                if (signal && signal.aborted) break;
+                const nextIndex = (currentIndex + 1) % ALPHABET.length, nextChar = ALPHABET[nextIndex];
+                
+                bottomChar.textContent = currentDisplayChar; frontChar.textContent = currentDisplayChar;
+                backChar.textContent = currentDisplayChar; nextTopChar.textContent = nextChar;
+                
+                flipper.style.transition = 'none'; flipper.style.transform = 'rotateX(0deg)';
+                flipper.offsetHeight; // force repaint
+                flipper.style.transition = `transform ${FLIP_DURATION_MS / 1000}s cubic-bezier(0.45, 0.05, 0.55, 0.95)`;
+                flipper.style.transform = 'rotateX(-180deg)';
+                playClick();
+
+                await new Promise(resolve => setTimeout(resolve, FLIP_DURATION_MS));
+                if (signal && signal.aborted) break;
+
+                flipper.style.transition = 'none'; flipper.style.transform = 'rotateX(0deg)';
+                frontChar.textContent = nextChar; bottomChar.textContent = nextChar;
+                currentDisplayChar = nextChar; currentIndex = nextIndex;
+            }
+        }
+        
+        function setupGrid(isTitle = false, forceRebuild = false) {
+            if (isTitle) forceRebuild = true;
+            if (!forceRebuild && !isTitle && boardCells.length > 0) return { cells: boardCells };
+            
+            const container = isTitle ? animatedTitleContainer : flipBoardElement;
+            const parentContainer = isTitle ? container.parentElement.parentElement : container.parentElement;
+
+            container.innerHTML = '';
+
+            const style = getComputedStyle(parentContainer);
+            const paddingLeft = parseFloat(style.paddingLeft) || 0, paddingRight = parseFloat(style.paddingRight) || 0;
+            const paddingTop = parseFloat(style.paddingTop) || 0, paddingBottom = parseFloat(style.paddingBottom) || 0;
+
+            const availableWidth = parentContainer.clientWidth - paddingLeft - paddingRight;
+            const availableHeight = parentContainer.clientHeight - paddingTop - paddingBottom;
+            const TARGET_CELL_ASPECT_RATIO_WH = 3/4;
+            
+            let currentCellWidth = window.innerWidth < 768 ? 30 : 45;
+            if (isTitle) currentCellWidth = Math.min(Math.max(30, 6 * window.innerWidth / 100), 55);
+            let currentCellHeight = currentCellWidth / TARGET_CELL_ASPECT_RATIO_WH;
+            if (isTitle) currentCellHeight = Math.min(Math.max(40, 8 * window.innerHeight / 100), 70);
+
+            let potentialCols = Math.max(1, Math.floor((availableWidth + AVG_GAP_SIZE) / (currentCellWidth + AVG_GAP_SIZE)));
+            let potentialRows = Math.max(1, Math.floor((availableHeight + AVG_GAP_SIZE) / (currentCellHeight + AVG_GAP_SIZE)));
+            
+            if (!isTitle && (potentialCols * potentialRows) > MAX_PREFERRED_CELLS) {
+                const scaleFactor = Math.sqrt((potentialCols * potentialRows) / MAX_PREFERRED_CELLS);
+                currentCellWidth *= scaleFactor;
+                currentCellHeight = currentCellWidth / TARGET_CELL_ASPECT_RATIO_WH;
+                potentialCols = Math.max(1, Math.floor((availableWidth + AVG_GAP_SIZE) / (currentCellWidth + AVG_GAP_SIZE)));
+                potentialRows = Math.max(1, Math.floor((availableHeight + AVG_GAP_SIZE) / (currentCellHeight + AVG_GAP_SIZE)));
+            }
+
+            if (isTitle) { numColsGlobal = "FLIPATRON".length; numRowsGlobal = 1; } 
+            else { numColsGlobal = potentialCols; numRowsGlobal = potentialRows; }
+
+            const finalBoardWidth = numColsGlobal * currentCellWidth + (numColsGlobal > 1 ? (numColsGlobal - 1) * AVG_GAP_SIZE : 0);
+            const finalBoardHeight = numRowsGlobal * currentCellHeight + (numRowsGlobal > 1 ? (numRowsGlobal - 1) * AVG_GAP_SIZE : 0);
+            const fontSize = isTitle ? currentCellHeight * 1.0 : currentCellHeight * 1.05; 
+            
+            container.style.width = isTitle ? 'auto' : `${finalBoardWidth}px`;
+            container.style.height = isTitle ? 'auto' : `${finalBoardHeight}px`;
+            if(!isTitle) { container.style.gridTemplateColumns = `repeat(${numColsGlobal}, 1fr)`; container.style.gridTemplateRows = `repeat(${numRowsGlobal}, 1fr)`; }
+            
+            const newCells = [];
+            const numCells = isTitle ? numColsGlobal : numColsGlobal * numRowsGlobal;
+            for (let i = 0; i < numCells; i++) {
+                const cell = createSplitFlapCell(isTitle, fontSize);
+                if(isTitle) { cell.style.width = `${currentCellWidth}px`; cell.style.height = `${currentCellHeight}px`; }
+                container.appendChild(cell);
+                newCells.push(cell);
+            }
+            if (!isTitle) boardCells = newCells;
+            return { cells: newCells };
+        }
+
+        function prepareCenteredMessageChars(message, totalRows, totalCols) {
+            const boardChars2D = Array(totalRows).fill(null).map(() => Array(totalCols).fill(' '));
+            const upperMessage = message.toUpperCase().substring(0, MAX_INPUT_LENGTH);
+            const words = upperMessage.split(/\s+/).filter(word => word.length > 0);
+
+            if (words.length === 0 && !upperMessage.trim()) return boardChars2D.flat();
+            
+            const messageLines = []; let currentLine = "";
+            words.forEach(word => {
+                if (word.length > totalCols) {
+                    if (currentLine) messageLines.push(currentLine); currentLine = "";
+                    for (let i = 0; i < word.length; i += totalCols) messageLines.push(word.substring(i, i + totalCols));
+                } else {
+                    if (currentLine.length + (currentLine.length > 0 ? 1 : 0) + word.length <= totalCols) {
+                        currentLine += (currentLine.length > 0 ? ' ' : "") + word;
+                    } else { messageLines.push(currentLine); currentLine = word; }
+                }
+            });
+            if (currentLine) messageLines.push(currentLine);
+
+            const startRow = Math.max(0, Math.floor((totalRows - messageLines.length) / 2));
+            for (let i = 0; i < messageLines.length; i++) {
+                const line = messageLines[i]; if (startRow + i >= totalRows) break;
+                const startCol = Math.max(0, Math.floor((totalCols - line.length) / 2));
+                for (let j = 0; j < line.length; j++) {
+                    if (startCol + j < totalCols) boardChars2D[startRow + i][startCol + j] = line[j];
+                }
+            }
+            return boardChars2D.flat();
+        }
+
+        async function displayMessageOnBoard(message, forceRebuild = false) {
+            if (isBoardAnimating) return;
+            isBoardAnimating = true;
+            boardControlsContainer.classList.remove('visible');
+
+            const { cells } = setupGrid(false, forceRebuild);
+            if (!cells || cells.length === 0) { isBoardAnimating = false; return; }
+            
+            messageInput.value = message;
+            const finalMessageChars = prepareCenteredMessageChars(message, numRowsGlobal, numColsGlobal);
+            
+            const animationPromises = cells.map((cell, i) => {
+                return new Promise(resolve => {
+                    setTimeout(async () => {
+                        await animateSingleCellToChar(cell, finalMessageChars[i] || ' ');
+                        resolve();
+                    }, i * STAGGER_DELAY_MS);
+                });
+            });
+
+            await Promise.all(animationPromises);
+            isBoardAnimating = false;
+        }
+
+        async function animatePageTitle() {
+            if (currentTitleAnimationController) currentTitleAnimationController.abort();
+            currentTitleAnimationController = new AbortController();
+            const signal = currentTitleAnimationController.signal, titleText = "FLIPATRON";
+            const { cells } = setupGrid(true);
+
+            document.querySelector('#inputScreen h1.static-title').style.display = 'none';
+            
+            const animationPromises = cells.map((cell, i) => {
+                 return new Promise(resolve => {
+                    setTimeout(async () => {
+                        if (signal.aborted) return resolve();
+                        await animateSingleCellToChar(cell, titleText[i], signal);
+                        resolve();
+                    }, i * TITLE_STAGGER_DELAY_MS);
+                });
+            });
+            await Promise.all(animationPromises);
+        }
+
+        // --- UI Actions and Event Handlers ---
+        function handleDisplayAction() {
+            if (isBoardAnimating) return;
+            stopHeadlines();
+            if (currentTitleAnimationController) currentTitleAnimationController.abort();
+            
+            const message = messageInput.value;
+            inputScreen.classList.remove('active');
+            boardScreen.classList.add('active');
+            setTimeout(() => displayMessageOnBoard(message, true), 50); // Force rebuild on first display
+        }
+
+        async function exportToPng() {
+            if (typeof html2canvas === 'undefined' || isBoardAnimating) return;
+            try {
+                const boardContainer = document.getElementById('flipBoardContainer');
+                boardControlsContainer.classList.remove('visible');
+                
+                const canvas = await html2canvas(boardContainer, {
+                    useCORS: true, backgroundColor: '#000000', scale: 2,
+                    onclone: (clonedDoc) => {
+                        const clonedBoardContainer = clonedDoc.getElementById('flipBoardContainer');
+                        if (clonedBoardContainer) {
+                            const charCells = clonedBoardContainer.querySelectorAll('.char-cell, .title-char-cell');
+                            const currentMessageChars = prepareCenteredMessageChars(messageInput.value, numRowsGlobal, numColsGlobal);
+                            charCells.forEach((cell, i) => {
+                                const targetChar = currentMessageChars[i] || ' '; 
+                                cell.querySelectorAll('.flap').forEach(flap => { flap.style.backgroundColor = 'var(--cell-bg)'; });
+                                cell.style.boxShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                                const topCharInner = cell.querySelector('.flipper .face.front .char-inner'), bottomCharInner = cell.querySelector('.flap.bottom .char-inner');
+                                if (topCharInner) topCharInner.textContent = targetChar;
+                                if (bottomCharInner) bottomCharInner.textContent = targetChar;
+                                const nextTop = cell.querySelector('.next-char-top'); if (nextTop) nextTop.remove();
+                                const backFace = cell.querySelector('.flipper .face.back'); if (backFace) backFace.remove();
+                                const flipper = cell.querySelector('.flipper'); if (flipper) { flipper.style.transform = 'none'; flipper.classList.remove('flipper'); }
+                            });
+                            const watermark = clonedDoc.createElement('div');
+                            watermark.textContent = "@ChrisPirillo's Flipatron";
+                            watermark.style.cssText = "position:absolute; bottom:10px; right:10px; font-family:'VT323',monospace; font-size:16px; color:rgba(255,255,255,0.7); z-index:100; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);";
+                            clonedBoardContainer.appendChild(watermark);
+                        }
+                    }
+                });
+                let filenameSlug = (messageInput.value || '').trim().toLowerCase().replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '-').substring(0, 35);
+                if (filenameSlug.endsWith('-')) filenameSlug = filenameSlug.slice(0, -1);
+                const link = document.createElement('a');
+                link.download = `flipatron-${filenameSlug || 'board'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (e) { console.error("Error exporting PNG:", e); }
+        }
+        
+        // --- Headlines Functionality ---
+        function stopHeadlines() {
+            if (headlinesInterval) { clearInterval(headlinesInterval); headlinesInterval = null; headlinesButton.textContent = "Headlines"; }
+        }
+
+        async function fetchRssFeed(url) {
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error(`Fetch failed for ${url}`);
+                const xmlText = await response.text();
+                const parser = new DOMParser(), doc = parser.parseFromString(xmlText, "application/xml");
+                if (doc.querySelector("parsererror")) return [];
+                return Array.from(doc.querySelectorAll("item > title, entry > title")).map(el => el.textContent);
+            } catch (error) { console.error(`Error fetching RSS: ${url}`, error); return []; }
+        }
+        
+        function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+
+        function displayNextHeadline() {
+            if (headlines.length === 0 || isBoardAnimating) return;
+            const headline = headlines[currentHeadlineIndex];
+            displayMessageOnBoard(headline, false); // Do not force rebuild for headlines
+            currentHeadlineIndex = (currentHeadlineIndex + 1) % headlines.length;
+        }
+
+        async function startHeadlines() {
+            stopHeadlines(); if (isBoardAnimating) return;
+            headlinesButton.textContent = "Loading...";
+            boardControlsContainer.classList.add('visible'); // Show loading text
+            
+            const allTitles = await Promise.all(RSS_FEEDS.map(fetchRssFeed));
+            headlines = allTitles.flat();
+
+            if (headlines.length > 0) {
+                shuffleArray(headlines); currentHeadlineIndex = 0; headlinesButton.textContent = "Stop";
+                displayNextHeadline();
+                headlinesInterval = setInterval(displayNextHeadline, HEADLINES_INTERVAL_MS);
+            } else { displayMessageOnBoard("COULD NOT FETCH HEADLINES."); headlinesButton.textContent = "Headlines"; }
+        }
+
+        // --- Controls Visibility ---
+        function showControls() {
+            if (boardScreen.classList.contains('active') && !isBoardAnimating) {
+                boardControlsContainer.classList.add('visible');
+                clearTimeout(controlsHideTimeout);
+            }
+        }
+
+        function hideControls() {
+            controlsHideTimeout = setTimeout(() => {
+                if (!headlinesInterval && !isBoardAnimating) {
+                     boardControlsContainer.classList.remove('visible');
+                }
+            }, 2000);
+        }
+        
+        // --- Event Listener Setup ---
+        displayButton.addEventListener('click', handleDisplayAction);
+        messageInput.addEventListener('keydown', e => e.key === 'Enter' && (e.preventDefault(), handleDisplayAction()));
+        
+        newBoardButton.addEventListener('click', () => {
+            if (isBoardAnimating) return; stopHeadlines();
+            boardScreen.classList.remove('active'); boardControlsContainer.classList.remove('visible');
+            setTimeout(() => { messageInput.value = ''; inputScreen.classList.add('active'); animatePageTitle(); }, SCREEN_TRANSITION_MS);
+        });
+
+        randomizeButton.addEventListener('click', () => {
+            if (isBoardAnimating) return; stopHeadlines();
+            const message = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+            const isFirstDisplay = !boardScreen.classList.contains('active');
+            inputScreen.classList.remove('active'); boardScreen.classList.add('active');
+            setTimeout(() => displayMessageOnBoard(message, isFirstDisplay), 50);
+        });
+        
+        headlinesButton.addEventListener('click', () => {
+            if (headlinesInterval) { 
+                stopHeadlines(); 
+            } 
+            else {
+                const isFirstDisplay = !boardScreen.classList.contains('active');
+                if (isFirstDisplay) {
+                    inputScreen.classList.remove('active'); boardScreen.classList.add('active');
+                    boardCells = []; // Clear cells to force a rebuild for the first headline
+                }
+                setTimeout(startHeadlines, 50);
+            }
+        });
+
+        exportButton.addEventListener('click', () => !isBoardAnimating && exportToPng());
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (isBoardAnimating || headlinesInterval) return;
+                if (boardScreen.classList.contains('active')) {
+                   displayMessageOnBoard(messageInput.value, true); // Force rebuild on resize
+                } else { animatePageTitle(); }
+            }, 350);
+        });
+        
+        window.addEventListener('mousemove', showControls);
+        window.addEventListener('touchstart', showControls, {passive: true});
+        boardScreen.addEventListener('mouseleave', hideControls);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            messageInput.maxLength = MAX_INPUT_LENGTH;
+            setupSound();
+            animatePageTitle();
+        });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CQ4D3VQ3L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1CQ4D3VQ3L');
+    </script>
+</body>
+</html>
