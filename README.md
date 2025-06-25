@@ -7,7 +7,6 @@ Experience FLIPATRON, a retro-inspired animated text display board. Enter your m
 
 ![Screenshot](https://github.com/ChrisPirillo/flipatron/blob/main/assets/screenshot.png?raw=true)
 
-
 ![Screenshot](https://raw.githubusercontent.com/ChrisPirillo/flipatron/main/assets/screenshot.png)
 
 * Try it now: [https://pirillo.com/arcade/flipatron.html](https://pirillo.com/arcade/flipatron.html)
